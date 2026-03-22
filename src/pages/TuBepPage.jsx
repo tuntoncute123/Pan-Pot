@@ -74,6 +74,7 @@ const tuBepProducts = [
 export default function TuBepPage() {
   const [products, setProducts] = useState(tuBepProducts);
   const [sidebarProducts, setSidebarProducts] = useState(defaultSidebarProducts);
+  const [showSidebar, setShowSidebar] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -106,7 +107,7 @@ export default function TuBepPage() {
 
   return (
     <section className="section shop-page">
-      <div className="container shop-container">
+      <div className="container shop-container tw-max-lg:tw-px-2">
         <div className="shop-title-wrap reveal">
           <p className="shop-breadcrumb">
             <Link to="/">TRANG CHỦ</Link>
@@ -115,12 +116,19 @@ export default function TuBepPage() {
           </p>
           <div className="shop-title-row">
             <h1>TỦ BẾP</h1>
+            <button
+              type="button"
+              className="mobile-filter-toggle d-lg-none tw-inline-flex tw-items-center tw-gap-2 tw-rounded tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2 tw-text-sm tw-font-semibold tw-text-slate-700"
+              onClick={() => setShowSidebar((prev) => !prev)}
+            >
+              Lọc
+            </button>
             <p>Xem tất cả {products.length} kết quả</p>
           </div>
         </div>
 
-        <div className="shop-content-grid">
-          <aside className="shop-sidebar reveal delay-1">
+        <div className="shop-content-grid tw-max-lg:tw-gap-3">
+          <aside className={`shop-sidebar reveal delay-1 ${showSidebar ? "d-block" : "d-none"} d-lg-block`}>
             <div className="shop-sidebar-inner">
               <section className="sidebar-widget">
                 <h3 className="widget-title">DANH MỤC SẢN PHẨM</h3>

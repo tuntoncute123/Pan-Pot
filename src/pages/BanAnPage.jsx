@@ -74,6 +74,7 @@ const banAnProducts = [
 export default function BanAnPage() {
   const [products, setProducts] = useState(banAnProducts);
   const [sidebarProducts, setSidebarProducts] = useState(defaultSidebarProducts);
+  const [showSidebar, setShowSidebar] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -106,7 +107,7 @@ export default function BanAnPage() {
 
   return (
     <section className="section shop-page">
-      <div className="container shop-container">
+      <div className="container shop-container tw-max-lg:tw-px-2">
         <div className="shop-page-title">
           <div className="shop-title-inner">
             <div className="shop-title-left">
@@ -118,6 +119,13 @@ export default function BanAnPage() {
             </div>
 
             <div className="shop-title-right">
+              <button
+                type="button"
+                className="mobile-filter-toggle d-lg-none tw-inline-flex tw-items-center tw-gap-2 tw-rounded tw-border tw-border-slate-300 tw-bg-white tw-px-3 tw-py-2 tw-text-sm tw-font-semibold tw-text-slate-700"
+                onClick={() => setShowSidebar((prev) => !prev)}
+              >
+                Lọc
+              </button>
               <p className="shop-result-count">Xem tất cả {products.length} kết quả</p>
               <select className="shop-order-select" defaultValue="menu_order" aria-label="Sắp xếp sản phẩm">
                 <option value="menu_order">Thứ tự mặc định</option>
@@ -131,8 +139,8 @@ export default function BanAnPage() {
           </div>
         </div>
 
-        <div className="shop-content-grid">
-          <aside className="shop-sidebar reveal delay-1">
+        <div className="shop-content-grid tw-max-lg:tw-gap-3">
+          <aside className={`shop-sidebar reveal delay-1 ${showSidebar ? "d-block" : "d-none"} d-lg-block`}>
             <div className="shop-sidebar-inner">
               <section className="sidebar-widget">
                 <h3 className="widget-title">DANH MỤC SẢN PHẨM</h3>
