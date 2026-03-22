@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 const mainMenuLinks = [
   { href: "/", label: "Trang chủ" },
+  { href: "/admin", label: "Quản trị" },
   { href: "/#featured", label: "Sản phẩm nổi bật" },
   { href: "/#catalog", label: "Danh mục" },
   { href: "/#news", label: "Tin tức" },
@@ -29,7 +30,7 @@ export default function Header() {
             </div>
 
             <div className="header-top-col right">
-              <a href="#">Đăng nhập</a>
+              <Link to="/admin">Quản trị</Link>
             </div>
           </div>
         </div>

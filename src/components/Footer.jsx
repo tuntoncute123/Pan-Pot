@@ -1,3 +1,13 @@
+import { Link } from "react-router-dom";
+
+const footerCategoryLinks = [
+  { to: "/tu-bep", label: "Tủ bếp" },
+  { to: "/ban-an", label: "Bàn ăn" },
+  { to: "/may-hut-mui", label: "Máy hút mùi" },
+  { to: "/phu-kien-nha-bep", label: "Phụ kiện nhà bếp" },
+  { to: "/chau-rua-voi-rua", label: "Chậu rửa - vòi rửa" },
+];
+
 export default function Footer() {
   return (
     <footer id="footer" className="footer">
@@ -16,6 +26,16 @@ export default function Footer() {
           <h5>TỔNG ĐÀI TƯ VẤN</h5>
           <p>(+84) 0313-728-397</p>
           <p>Từ 7h30 - 22h (T2 - T6)</p>
+        </div>
+        <div>
+          <h5>DANH MỤC NỔI BẬT</h5>
+          <ul>
+            {footerCategoryLinks.map((item) => (
+              <li key={item.to}>
+                <Link to={item.to}>{item.label}</Link>
+              </li>
+            ))}
+          </ul>
         </div>
         <div>
           <h5>KẾT NỐI VỚI CHÚNG TÔI</h5>

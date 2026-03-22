@@ -5,9 +5,11 @@ import FeaturedTabs from "./components/FeaturedTabs";
 import CatalogSection from "./components/CatalogSection";
 import NewsSection from "./components/NewsSection";
 import Footer from "./components/Footer";
+import SeoManager from "./components/SeoManager";
 import TuBepPage from "./pages/TuBepPage";
 import BanAnPage from "./pages/BanAnPage";
 import CategoryEmptyPage from "./pages/CategoryEmptyPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 
 function HomePage() {
   return (
@@ -23,11 +25,13 @@ function HomePage() {
 export default function App() {
   return (
     <>
+      <SeoManager />
       <div className="site-bg" />
       <Header />
       <main>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/tu-bep" element={<TuBepPage />} />
           <Route path="/ban-an" element={<BanAnPage />} />
           <Route

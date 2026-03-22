@@ -26,6 +26,162 @@ function mapWidgetRow(row) {
   };
 }
 
+const fallbackAdminRows = [
+  {
+    id: "fb-1",
+    category_label: "TỦ BẾP",
+    name: "Tủ bếp gỗ sồi hiện đại cánh kính",
+    price: 17900000,
+    sale_percent: 4,
+    is_active: true,
+    updated_at: "2026-03-22T09:00:00.000Z",
+  },
+  {
+    id: "fb-2",
+    category_label: "BÀN ĂN",
+    name: "Bộ bàn ăn 6 ghế xuất khẩu Nhật",
+    price: 10980000,
+    sale_percent: 1,
+    is_active: true,
+    updated_at: "2026-03-22T08:25:00.000Z",
+  },
+  {
+    id: "fb-3",
+    category_label: "MÁY HÚT MÙI",
+    name: "Máy hút mùi kính cong KAFF KF-GB 902",
+    price: 5742000,
+    sale_percent: 2,
+    is_active: true,
+    updated_at: "2026-03-21T15:45:00.000Z",
+  },
+  {
+    id: "fb-4",
+    category_label: "CÁC LOẠI BẾP",
+    name: "Bếp gas âm kính Apex",
+    price: 6575000,
+    sale_percent: 6,
+    is_active: true,
+    updated_at: "2026-03-21T10:30:00.000Z",
+  },
+  {
+    id: "fb-5",
+    category_label: "GHẾ ĂN",
+    name: "Ghế bàn ăn Gislevi",
+    price: 2352000,
+    sale_percent: 8,
+    is_active: true,
+    updated_at: "2026-03-20T13:15:00.000Z",
+  },
+  {
+    id: "fb-6",
+    category_label: "TỦ LẠNH",
+    name: "Tủ lạnh inverter 2 cánh 320L",
+    price: 12490000,
+    sale_percent: 5,
+    is_active: true,
+    updated_at: "2026-03-20T09:50:00.000Z",
+  },
+];
+
+function formatDateTime(value) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Vừa cập nhật";
+  }
+
+  return date.toLocaleString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+  });
+}
+
+function buildAdminDashboard(rows, isFallback = false) {
+  const activeRows = rows.filter((row) => row.is_active !== false);
+  const totalProducts = activeRows.length;
+  const totalCategories = new Set(activeRows.map((row) => row.category_label || "Khác")).size;
+  const discountRows = activeRows.filter((row) => Number(row.sale_percent) > 0);
+  const avgDiscount = discountRows.length
+    ? Math.round(discountRows.reduce((sum, row) => sum + Number(row.sale_percent || 0), 0) / discountRows.length)
+    : 0;
+  const featuredProducts = activeRows.filter((row) => Number(row.sale_percent || 0) >= 5).length;
+
+  const categoryMap = new Map();
+  for (const row of activeRows) {
+    const category = row.category_label || "Khác";
+    const current = categoryMap.get(category) || { count: 0, totalPrice: 0 };
+    categoryMap.set(category, {
+      count: current.count + 1,
+      totalPrice: current.totalPrice + Number(row.price || 0),
+    });
+  }
+
+  const maxCategoryCount = Math.max(...Array.from(categoryMap.values()).map((item) => item.count), 1);
+
+  const categoryPerformance = Array.from(categoryMap.entries())
+    .map(([category, stats]) => ({
+      category,
+      count: stats.count,
+      avgPrice: toVnd(Math.round(stats.totalPrice / Math.max(stats.count, 1))),
+      progress: Math.max(12, Math.round((stats.count / maxCategoryCount) * 100)),
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  const recentProducts = [...activeRows]
+    .sort((a, b) => new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime())
+    .slice(0, 6)
+    .map((row) => ({
+      id: row.id,
+      name: row.name,
+      category: row.category_label || "Khác",
+      price: toVnd(row.price),
+      sale: row.sale_percent ? `-${row.sale_percent}%` : "0%",
+      updatedAt: formatDateTime(row.updated_at),
+    }));
+
+  const activities = recentProducts.slice(0, 4).map((item, index) => ({
+    id: `${item.id}-activity`,
+    title: isFallback && index === 0 ? "Đang dùng dữ liệu mẫu" : `Đã cập nhật ${item.category}`,
+    time: item.updatedAt,
+    detail: `${item.name} · ${item.price}`,
+  }));
+
+  return {
+    metrics: [
+      {
+        label: "Tổng sản phẩm",
+        value: totalProducts.toLocaleString("vi-VN"),
+        hint: "Sản phẩm đang hiển thị",
+        tone: "tone-blue",
+      },
+      {
+        label: "Danh mục hoạt động",
+        value: totalCategories.toLocaleString("vi-VN"),
+        hint: "Danh mục có ít nhất 1 sản phẩm",
+        tone: "tone-orange",
+      },
+      {
+        label: "Giảm giá trung bình",
+        value: `${avgDiscount}%`,
+        hint: "Theo các sản phẩm có khuyến mãi",
+        tone: "tone-green",
+      },
+      {
+        label: "Sản phẩm nổi bật",
+        value: featuredProducts.toLocaleString("vi-VN"),
+        hint: "Sản phẩm giảm từ 5% trở lên",
+        tone: "tone-red",
+      },
+    ],
+    recentProducts,
+    categoryPerformance,
+    activities,
+  };
+}
+
 export async function getCategoryProducts(categorySlug) {
   if (!hasSupabaseConfig || !supabase) {
     return [];
@@ -66,4 +222,29 @@ export async function getSidebarProducts(limit = 5) {
   }
 
   return (data || []).map(mapWidgetRow);
+}
+
+export async function getAdminDashboardData() {
+  if (!hasSupabaseConfig || !supabase) {
+    return buildAdminDashboard(fallbackAdminRows, true);
+  }
+
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, category_label, name, price, sale_percent, is_active, updated_at")
+    .order("updated_at", { ascending: false })
+    .limit(120);
+
+  if (error) {
+    console.error("Cannot load admin dashboard data", error);
+    return buildAdminDashboard(fallbackAdminRows, true);
+  }
+
+  const rows = data || [];
+
+  if (!rows.length) {
+    return buildAdminDashboard(fallbackAdminRows, true);
+  }
+
+  return buildAdminDashboard(rows);
 }
