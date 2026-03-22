@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useCart } from "../context/CartContext";
 
 const mainMenuLinks = [
   { href: "/", label: "Trang chủ" },
@@ -11,6 +12,7 @@ const mainMenuLinks = [
 
 export default function Header() {
   const navigate = useNavigate();
+  const { cartCount } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -95,11 +97,12 @@ export default function Header() {
                 </button>
               </form>
 
-              <a href="#" className="header-cart-link" title="Giỏ hàng">
+              <Link to="/gio-hang" className="header-cart-link" title="Giỏ hàng">
                 <span className="header-cart-icon" aria-hidden="true">
                   🛒
                 </span>
-              </a>
+                {cartCount ? <span className="header-cart-count">{cartCount}</span> : null}
+              </Link>
             </div>
 
             <div className="hide-for-medium masthead-right">
@@ -123,9 +126,9 @@ export default function Header() {
             </div>
 
             <div className="show-for-medium mobile-right">
-              <a href="#" className="mobile-icon-button" aria-label="Giỏ hàng" title="Giỏ hàng">
+              <Link to="/gio-hang" className="mobile-icon-button" aria-label="Giỏ hàng" title="Giỏ hàng">
                 🛒
-              </a>
+              </Link>
             </div>
           </div>
 

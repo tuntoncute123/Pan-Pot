@@ -1,6 +1,7 @@
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { getProductDetail } from "../lib/productsApi";
+import { useCart } from "../context/CartContext";
 
 function toVnd(value) {
   return Number(value || 0).toLocaleString("vi-VN") + " ₫";
@@ -56,9 +57,12 @@ export default function ProductDetailPage() {
   const { productKey } = useParams();
   const location = useLocation();
   const stateProduct = location.state?.product;
+  const { addToCart } = useCart();
 
   const [product, setProduct] = useState(stateProduct ? mapStateProduct(stateProduct) : null);
   const [isLoading, setIsLoading] = useState(true);
+  const [quantity, setQuantity] = useState(1);
+  const [addSuccess, setAddSuccess] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -122,6 +126,26 @@ export default function ProductDetailPage() {
 
   const mainImage = product.images?.[0] || "https://via.placeholder.com/720x720?text=Product";
 
+  function handleAddToCart() {
+    addToCart(
+      {
+        id: product.id || product.slug || product.name,
+        slug: product.slug,
+        name: product.name,
+        image: mainImage,
+        category: product.category,
+        price: product.salePrice || product.price,
+        priceText: product.salePriceText || product.priceText,
+      },
+      quantity
+    );
+
+    setAddSuccess("Đã thêm sản phẩm vào giỏ hàng.");
+    window.setTimeout(() => {
+      setAddSuccess("");
+    }, 1800);
+  }
+
   return (
     <section className="section product-detail-page">
       <div className="container">
@@ -156,6 +180,26 @@ export default function ProductDetailPage() {
                 {product.salePriceText ? <span>{product.priceText}</span> : null}
                 {product.salePercent ? <em>-{product.salePercent}%</em> : null}
               </div>
+
+              <div className="product-detail-actions">
+                <label>
+                  Số lượng
+                  <input
+                    type="number"
+                    min="1"
+                    value={quantity}
+                    onChange={(event) => setQuantity(Math.max(1, Number(event.target.value) || 1))}
+                  />
+                </label>
+                <button type="button" onClick={handleAddToCart} disabled={!product.inStock}>
+                  Thêm vào giỏ hàng
+                </button>
+                <Link to="/gio-hang" className="go-to-cart">
+                  Xem giỏ hàng
+                </Link>
+              </div>
+
+              {addSuccess ? <p className="product-detail-add-success">{addSuccess}</p> : null}
 
               <p className="product-detail-desc">{product.description}</p>
 

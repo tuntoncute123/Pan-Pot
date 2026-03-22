@@ -12,6 +12,7 @@ import CategoryEmptyPage from "./pages/CategoryEmptyPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import LoginPage from "./pages/LoginPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
+import CartPage from "./pages/CartPage";
 
 function HomePage() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/dang-nhap" element={<LoginPage />} />
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/san-pham/:productKey" element={<ProductDetailPage />} />
+          <Route path="/gio-hang" element={<CartPage />} />
           <Route path="/tu-bep" element={<TuBepPage />} />
           <Route path="/ban-an" element={<BanAnPage />} />
           <Route
