@@ -5,13 +5,23 @@ function toVnd(value) {
 }
 
 function mapProductRow(row) {
+  const basePrice = toNumber(row.price);
+  const salePrice = row.salePrice ?? row.sale_price;
+  const salePercentRaw = row.sale_percent;
+  let salePercent = toNumber(salePercentRaw);
+
+  if (!salePercent && salePrice != null && basePrice > toNumber(salePrice)) {
+    salePercent = Math.round(((basePrice - toNumber(salePrice)) / basePrice) * 100);
+  }
+
   return {
     id: row.id,
-    category: row.category_label,
+    slug: row.slug || null,
+    category: row.category_label || row.category || "Khác",
     name: row.name,
     oldPrice: row.old_price ? toVnd(row.old_price) : "",
-    price: toVnd(row.price),
-    sale: row.sale_percent ? `-${row.sale_percent}%` : "",
+    price: toVnd(basePrice),
+    sale: salePercent ? `-${salePercent}%` : "",
     image: row.image,
   };
 }
@@ -250,7 +260,7 @@ export async function getCategoryProducts(categorySlug) {
     return [];
   }
 
-  const { data, error } = await supabase
+  const legacyResult = await supabase
     .from("products")
     .select("id, category_label, name, old_price, price, sale_percent, image, sort_order")
     .eq("category_slug", categorySlug)
@@ -258,12 +268,26 @@ export async function getCategoryProducts(categorySlug) {
     .order("sort_order", { ascending: true })
     .order("id", { ascending: false });
 
-  if (error) {
-    console.error("Cannot load products from Supabase", error);
+  if (!legacyResult.error && (legacyResult.data || []).length) {
+    return (legacyResult.data || []).map(mapProductRow);
+  }
+
+  const modernResult = await supabase
+    .from("products")
+    .select('id, slug, category, name, price, "salePrice", image, "inStock"')
+    .eq("category", categorySlug)
+    .eq("inStock", true)
+    .order("id", { ascending: false });
+
+  if (modernResult.error) {
+    console.error("Cannot load products from Supabase", {
+      legacyError: legacyResult.error,
+      modernError: modernResult.error,
+    });
     return [];
   }
 
-  return (data || []).map(mapProductRow);
+  return (modernResult.data || []).map(mapProductRow);
 }
 
 export async function getSidebarProducts(limit = 5) {
@@ -391,4 +415,110 @@ export async function createAdminProduct(productInput) {
   }
 
   return { ok: true };
+}
+
+function normalizeProductDetailRow(row) {
+  const price = toNumber(row.price);
+  const salePriceRaw = row.salePrice ?? row.sale_price;
+  const salePrice = salePriceRaw == null ? null : toNumber(salePriceRaw);
+  const salePercentRaw = row.sale_percent;
+  let salePercent = toNumber(salePercentRaw);
+
+  if (!salePercent && salePrice != null && salePrice > 0 && price > salePrice) {
+    salePercent = Math.round(((price - salePrice) / price) * 100);
+  }
+
+  const imageList = Array.isArray(row.images) ? row.images.filter(Boolean) : [];
+  const primaryImage = row.image || imageList[0] || "https://via.placeholder.com/720x720?text=Product";
+  const gallery = [primaryImage, ...imageList.filter((item) => item !== primaryImage)];
+
+  return {
+    id: row.id,
+    slug: row.slug || null,
+    name: row.name || "Sản phẩm",
+    category: row.category_label || row.category || "Khác",
+    brand: row.brand || "Đang cập nhật",
+    price,
+    priceText: toVnd(price),
+    salePercent,
+    salePrice,
+    salePriceText: salePrice ? toVnd(salePrice) : "",
+    description: row.description || "Sản phẩm đang được cập nhật mô tả chi tiết.",
+    details: row.details || "Thông tin chi tiết sẽ được cập nhật sớm.",
+    inStock: row.is_active ?? row.inStock ?? true,
+    stock: toNumber(row.stock),
+    rating: toNumber(row.rating),
+    reviewCount: toNumber(row.reviewCount ?? row.review_count),
+    sold: toNumber(row.sold),
+    material: row.material || "Đang cập nhật",
+    capacity: row.capacity || "Đang cập nhật",
+    color: row.color || "Đang cập nhật",
+    weight: row.weight || "Đang cập nhật",
+    origin: row.origin || "Đang cập nhật",
+    warranty: row.warranty || "Đang cập nhật",
+    suitableFor: row.suitableFor || row.suitable_for || "Đang cập nhật",
+    badges: Array.isArray(row.badges) ? row.badges : [],
+    images: gallery,
+    updatedAt: formatDateTime(row.updated_at),
+  };
+}
+
+export async function getProductDetail(productKey) {
+  if (!hasSupabaseConfig || !supabase) {
+    return null;
+  }
+
+  const rawKey = String(productKey || "").trim();
+  if (!rawKey) {
+    return null;
+  }
+
+  const decodedKey = decodeURIComponent(rawKey);
+  const numericId = Number(decodedKey);
+
+  const legacyColumns =
+    "id, slug, name, category_label, price, sale_percent, image, description, details, is_active, stock, rating, review_count, sold, material, capacity, color, weight, origin, warranty, suitable_for, updated_at";
+  const modernColumns =
+    'id, slug, name, brand, category, price, "salePrice", image, images, description, details, "inStock", stock, rating, "reviewCount", sold, material, capacity, color, weight, origin, warranty, "suitableFor", badges, updated_at';
+
+  async function findOneByColumns(columns) {
+    if (Number.isFinite(numericId) && numericId > 0) {
+      const byIdResult = await supabase.from("products").select(columns).eq("id", numericId).maybeSingle();
+      if (!byIdResult.error && byIdResult.data) {
+        return byIdResult.data;
+      }
+    }
+
+    const bySlugResult = await supabase.from("products").select(columns).eq("slug", decodedKey).maybeSingle();
+    if (!bySlugResult.error && bySlugResult.data) {
+      return bySlugResult.data;
+    }
+
+    const normalizedName = decodedKey.replace(/-/g, " ");
+    const byNameResult = await supabase
+      .from("products")
+      .select(columns)
+      .ilike("name", normalizedName)
+      .order("id", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!byNameResult.error && byNameResult.data) {
+      return byNameResult.data;
+    }
+
+    return null;
+  }
+
+  const legacyRow = await findOneByColumns(legacyColumns);
+  if (legacyRow) {
+    return normalizeProductDetailRow(legacyRow);
+  }
+
+  const modernRow = await findOneByColumns(modernColumns);
+  if (modernRow) {
+    return normalizeProductDetailRow(modernRow);
+  }
+
+  return null;
 }
