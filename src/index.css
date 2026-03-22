@@ -1781,6 +1781,27 @@ select {
   color: #304865;
 }
 
+.admin-data-source {
+  border: 1px solid #d6e4f7;
+  background: #f4f9ff;
+  color: #28517d;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.admin-data-source.ok {
+  border-color: #cde8d8;
+  background: #edf9f1;
+  color: #1c6a43;
+}
+
+.admin-data-source.fallback {
+  border-color: #f2d8c0;
+  background: #fff7ef;
+  color: #8a5528;
+}
+
 .admin-metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1969,6 +1990,152 @@ select {
   font-size: 0.77rem;
 }
 
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(8, 12, 20, 0.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.admin-modal {
+  width: min(100%, 980px);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #dce3ee;
+  box-shadow: 0 24px 60px rgba(15, 23, 40, 0.28);
+  padding: 0.95rem;
+}
+
+.admin-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.admin-modal-head h2 {
+  margin: 0;
+  color: #1f3652;
+  font-size: 1.05rem;
+}
+
+.admin-modal-close {
+  border: 1px solid #d2d8e3;
+  background: #fff;
+  color: #334155;
+  border-radius: 6px;
+  height: 34px;
+  padding: 0 0.85rem;
+  cursor: pointer;
+}
+
+.admin-product-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.admin-product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.admin-product-grid label {
+  display: grid;
+  gap: 0.35rem;
+  color: #324862;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.admin-product-grid .span-2 {
+  grid-column: span 2;
+}
+
+.admin-product-grid input,
+.admin-product-grid textarea {
+  width: 100%;
+  border: 1px solid #d6dde8;
+  border-radius: 6px;
+  font-size: 0.92rem;
+  color: #1f2937;
+  padding: 0.55rem 0.7rem;
+  font-family: inherit;
+}
+
+.admin-product-grid input:focus,
+.admin-product-grid textarea:focus {
+  outline: none;
+  border-color: #ef2028;
+  box-shadow: 0 0 0 3px rgba(239, 32, 40, 0.15);
+}
+
+.admin-product-checks {
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.admin-product-checks label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.admin-form-error {
+  margin: 0;
+  color: #b3261e;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.admin-form-success {
+  margin: 0;
+  color: #166534;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.admin-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.admin-form-actions button {
+  border: 0;
+  border-radius: 6px;
+  height: 38px;
+  padding: 0 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-form-actions button:first-child {
+  border: 1px solid #d2d8e3;
+  background: #fff;
+  color: #334155;
+}
+
+.admin-form-actions button:last-child {
+  background: linear-gradient(90deg, #ef2028, #f47b20);
+  color: #fff;
+}
+
+.admin-form-actions button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
 @media (max-width: 1050px) {
   .admin-metrics-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1991,6 +2158,189 @@ select {
   .panel-head h2 {
     font-size: 0.95rem;
   }
+
+  .admin-product-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-product-grid .span-2 {
+    grid-column: auto;
+  }
+
+  .admin-modal {
+    padding: 0.8rem;
+  }
+}
+
+.login-page {
+  padding-top: 26px;
+  padding-bottom: 28px;
+}
+
+.login-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 470px;
+  background: #ffffff;
+  border: 1px solid #e4e8ef;
+  border-radius: 8px;
+  box-shadow: 0 16px 38px rgba(24, 31, 45, 0.08);
+  padding: 1.2rem;
+}
+
+.login-eyebrow {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.77rem;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+}
+
+.login-card h1 {
+  margin: 0.2rem 0 0;
+  color: #1f2937;
+  font-size: clamp(1.25rem, 2.3vw, 1.7rem);
+}
+
+.login-card header p {
+  margin-top: 0.5rem;
+  color: #556272;
+}
+
+.login-form {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.95rem;
+}
+
+.login-form label {
+  font-size: 0.87rem;
+  color: #334155;
+  font-weight: 700;
+}
+
+.login-form input {
+  width: 100%;
+  height: 43px;
+  border: 1px solid #d6dde8;
+  border-radius: 6px;
+  padding: 0 0.75rem;
+  font-size: 0.95rem;
+  color: #1f2937;
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: #ef2028;
+  box-shadow: 0 0 0 3px rgba(239, 32, 40, 0.15);
+}
+
+.login-form button {
+  margin-top: 0.45rem;
+  height: 44px;
+  border: 0;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #ef2028, #f47b20);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.login-error {
+  margin: 0.2rem 0 0;
+  color: #c62828;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.login-note {
+  margin: 0.9rem 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.login-note a {
+  color: #ef2028;
+  font-weight: 700;
+}
+
+@media (max-width: 580px) {
+  .login-card {
+    padding: 1rem;
+    border-radius: 6px;
+  }
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid #eceff5;
+  flex-wrap: wrap;
+}
+
+.pagination-btn {
+  border: 1px solid #d2d8e3;
+  background: #fff;
+  color: #334155;
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 0.45rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  min-width: 100px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f5f7fa;
+  border-color: #c2cadb;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.pagination-page {
+  border: 1px solid #d2d8e3;
+  background: #fff;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 700;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.22s ease;
+}
+
+.pagination-page:hover {
+  background: #f5f7fa;
+  border-color: #c2cadb;
+}
+
+.pagination-page.active {
+  background: linear-gradient(90deg, #ef2028, #f47b20);
+  color: #fff;
+  border-color: #ef2028;
 }
 
 @tailwind utilities;

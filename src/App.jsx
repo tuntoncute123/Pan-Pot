@@ -10,6 +10,7 @@ import TuBepPage from "./pages/TuBepPage";
 import BanAnPage from "./pages/BanAnPage";
 import CategoryEmptyPage from "./pages/CategoryEmptyPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import LoginPage from "./pages/LoginPage";
 
 function HomePage() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/dang-nhap" element={<LoginPage />} />
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/tu-bep" element={<TuBepPage />} />
           <Route path="/ban-an" element={<BanAnPage />} />

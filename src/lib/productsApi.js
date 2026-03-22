@@ -98,6 +98,66 @@ function formatDateTime(value) {
   });
 }
 
+function toNumber(value) {
+  const num = Number(value ?? 0);
+  return Number.isFinite(num) ? num : 0;
+}
+
+function toNullableNumber(value) {
+  if (value === "" || value == null) {
+    return null;
+  }
+
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
+function slugify(text) {
+  return String(text || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function splitByComma(text) {
+  return String(text || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function toNullableText(value) {
+  const text = String(value ?? "").trim();
+  return text || null;
+}
+
+function normalizeDashboardRow(row) {
+  const price = toNumber(row.price);
+  const salePercentRaw = row.sale_percent;
+  const salePriceRaw = row.salePrice ?? row.sale_price;
+  const salePrice = salePriceRaw == null ? null : toNumber(salePriceRaw);
+
+  let salePercent = toNumber(salePercentRaw);
+  if (!salePercent && salePrice != null && salePrice > 0 && price > salePrice) {
+    salePercent = Math.round(((price - salePrice) / price) * 100);
+  }
+
+  return {
+    id: row.id,
+    category_label: row.category_label || row.category || "Khác",
+    name: row.name,
+    price,
+    sale_percent: salePercent,
+    is_active: row.is_active ?? row.inStock ?? true,
+    updated_at: row.updated_at,
+  };
+}
+
 function buildAdminDashboard(rows, isFallback = false) {
   const activeRows = rows.filter((row) => row.is_active !== false);
   const totalProducts = activeRows.length;
@@ -131,8 +191,7 @@ function buildAdminDashboard(rows, isFallback = false) {
     .slice(0, 5);
 
   const recentProducts = [...activeRows]
-    .sort((a, b) => new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime())
-    .slice(0, 6)
+    .sort((a, b) => Number(b.id || 0) - Number(a.id || 0))
     .map((row) => ({
       id: row.id,
       name: row.name,
@@ -144,12 +203,16 @@ function buildAdminDashboard(rows, isFallback = false) {
 
   const activities = recentProducts.slice(0, 4).map((item, index) => ({
     id: `${item.id}-activity`,
-    title: isFallback && index === 0 ? "Đang dùng dữ liệu mẫu" : `Đã cập nhật ${item.category}`,
+    title: isFallback && index === 0 ? "Đang dùng dữ liệu mẫu" : `Sản phẩm ${item.name}`,
     time: item.updatedAt,
-    detail: `${item.name} · ${item.price}`,
+    detail: `${item.category} · ${item.price}`,
   }));
 
   return {
+    source: isFallback ? "fallback" : "supabase",
+    message: isFallback
+      ? "Dashboard đang hiển thị dữ liệu mẫu. Kiểm tra cấu hình Supabase hoặc dữ liệu bảng products."
+      : "Dashboard đang hiển thị dữ liệu từ Supabase.",
     metrics: [
       {
         label: "Tổng sản phẩm",
@@ -229,22 +292,103 @@ export async function getAdminDashboardData() {
     return buildAdminDashboard(fallbackAdminRows, true);
   }
 
-  const { data, error } = await supabase
+  const legacyResult = await supabase
     .from("products")
     .select("id, category_label, name, price, sale_percent, is_active, updated_at")
+    .eq("is_active", true)
     .order("updated_at", { ascending: false })
     .limit(120);
 
-  if (error) {
-    console.error("Cannot load admin dashboard data", error);
+  if (!legacyResult.error) {
+    const normalizedRows = (legacyResult.data || []).map(normalizeDashboardRow);
+
+    if (normalizedRows.length) {
+      return buildAdminDashboard(normalizedRows);
+    }
+  }
+
+  const modernResult = await supabase
+    .from("products")
+    .select('id, category, name, price, "salePrice", "inStock", updated_at')
+    .eq("inStock", true)
+    .order("updated_at", { ascending: false })
+    .limit(120);
+
+  if (modernResult.error) {
+    console.error("Cannot load admin dashboard data", {
+      legacyError: legacyResult.error,
+      modernError: modernResult.error,
+    });
     return buildAdminDashboard(fallbackAdminRows, true);
   }
 
-  const rows = data || [];
+  const rows = (modernResult.data || []).map(normalizeDashboardRow);
 
   if (!rows.length) {
     return buildAdminDashboard(fallbackAdminRows, true);
   }
 
   return buildAdminDashboard(rows);
+}
+
+export async function createAdminProduct(productInput) {
+  if (!hasSupabaseConfig || !supabase) {
+    return {
+      ok: false,
+      error: "Chưa cấu hình Supabase. Vui lòng kiểm tra biến môi trường.",
+    };
+  }
+
+  const name = String(productInput.name || "").trim();
+  const brand = String(productInput.brand || "").trim();
+  const category = String(productInput.category || "").trim();
+  const price = toNumber(productInput.price);
+
+  if (!name || !brand || !category || !price) {
+    return {
+      ok: false,
+      error: "Vui lòng nhập đầy đủ các trường bắt buộc: tên, thương hiệu, danh mục, giá.",
+    };
+  }
+
+  const row = {
+    name,
+    slug: toNullableText(productInput.slug) || slugify(name),
+    brand,
+    category,
+    subCategory: toNullableText(productInput.subCategory),
+    price,
+    salePrice: toNullableNumber(productInput.salePrice),
+    image: toNullableText(productInput.image),
+    images: splitByComma(productInput.images),
+    description: toNullableText(productInput.description),
+    details: toNullableText(productInput.details),
+    isNew: Boolean(productInput.isNew),
+    isSale: Boolean(productInput.isSale),
+    isTrending: Boolean(productInput.isTrending),
+    inStock: productInput.inStock !== false,
+    stock: toNumber(productInput.stock),
+    badges: splitByComma(productInput.badges),
+    material: toNullableText(productInput.material),
+    capacity: toNullableText(productInput.capacity),
+    color: toNullableText(productInput.color),
+    weight: toNullableText(productInput.weight),
+    origin: toNullableText(productInput.origin),
+    warranty: toNullableText(productInput.warranty),
+    suitableFor: toNullableText(productInput.suitableFor),
+    rating: toNumber(productInput.rating),
+    reviewCount: toNumber(productInput.reviewCount),
+    sold: toNumber(productInput.sold),
+  };
+
+  const { error } = await supabase.from("products").insert(row).select("id").single();
+
+  if (error) {
+    return {
+      ok: false,
+      error: error.message || "Không thể thêm sản phẩm. Vui lòng kiểm tra quyền truy cập Supabase.",
+    };
+  }
+
+  return { ok: true };
 }

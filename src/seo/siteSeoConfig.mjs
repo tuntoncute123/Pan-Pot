@@ -91,6 +91,13 @@ const routeSeoMap = {
     type: "CollectionPage",
     priority: "0.7",
   },
+  "/dang-nhap": {
+    title: "Đăng nhập | Pan&Pot",
+    description: "Trang đăng nhập cho quản trị viên Pan&Pot.",
+    keywords: "dang nhap, quan tri",
+    type: "WebPage",
+    noindex: true,
+  },
   "/admin": {
     title: "Quản trị | Pan&Pot",
     description: "Trang quản trị nội bộ Pan&Pot.",
